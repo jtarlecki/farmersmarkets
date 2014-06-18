@@ -1,6 +1,6 @@
 import os, urllib2, simplejson
 from database import Database, DatabaseOps
-from zipmarket import ZipMarket
+from zipmarket import ZipMarket             #eventually push into models.py
 from models import MarketDetails
 import settings as s
 
@@ -101,21 +101,20 @@ class ApiEngine(object):
 
             # print self.api_err[0], self.api_err[1]
             """
-            I think the only way to do this is to pass a dict to MarketDetails
-            and/or do the same for ZipMarket
-            ...there's no way out of getting specific for the database models (classes).
-            unless the classes can recognize and instance themselves.             
+            Explicit call to MarketDetails() here is weak
+            As is passing the parameters individually
+            ### NEEDS WORK ###
             """
-
             
-            md = MarketDetails(KeyArgs.record[0],
-                               KeyArgs.record[1],
-                               result['Address'],
-                               result['GoogleLink'],
-                               result['Products'],
-                               result['Schedule'])
+            marketdetail = MarketDetails(KeyArgs.record[0],
+                                         KeyArgs.record[1],
+                                         result['Address'],
+                                         result['GoogleLink'],
+                                         result['Products'],
+                                         result['Schedule']
+                                         )
             
-            sql_cols = MarketDetails('id', 'marketname', 'address', 'googlelink', 'products', 'schedule')
+            sql_cols = MarketDetails(*KeyArgs.engine.sql_cols_list)
             
             sql = DatabaseOps()
             sql.import_classes(sql_cols, md)
@@ -160,7 +159,8 @@ class Engine(object):
             # combine the column names with the declarations
             # // this could be improved
             sql_defs.append('%s %s' % (column[0],column[1])) 
-            
+        
+        self.sql_cols_list = sql_cols    
         self.sql_cols = self.init_cls(sql_cols)
         self.sql_declare = self.init_cls(sql_declare)
         self.api_cols = self.init_cls(api_cols)
@@ -177,7 +177,7 @@ class Engine(object):
 class KeyArgs():
     
     def __init__(self, engine, write_to_db, record): # fix zip_start & zip_finish    
-        self.enine = engine
+        self.engine = engine
         self.write_to_db = write_to_db
         self.record = record      
         
@@ -208,6 +208,8 @@ def test():
                   )    
     k = KeyArgs(e, s.WRITE_TO_DB, '')
     
+    print 'k.engine.sql_cols_list', k.engine.sql_cols_list
+     
     recs = test_db()  ### NEEDS WORK ###
 
     if k.db != None:         

@@ -42,6 +42,7 @@ class DatabaseOps(object):
             self.lhs = lhs_class
             self.rhs = rhs_class
             self.pair_values(include_ids)
+            self.tablename = lhs_class.__class__.__name__.lower()
         else:
             self.__del__()
     
@@ -91,9 +92,10 @@ class DatabaseOps(object):
     def build_insert(self):
         # // TO DO:
         # only thing left to clean up, bring in table name into class.        
-        sql = "INSERT INTO %s(%s) VALUES(%s)" % ('marketdetails', self.make_delimited_string(', '), self.make_insert_into_values())
+        sql = "INSERT INTO %s(%s) VALUES(%s)" % (self.tablename, self.make_delimited_string(', '), self.make_insert_into_values())
         return sql
     
     def build_csv(self, delim='|', is_header=False):
         string = "%s\n" % (self.make_delimited_string(delim, is_header))
         return string
+    
