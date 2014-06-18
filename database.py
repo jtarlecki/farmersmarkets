@@ -1,6 +1,6 @@
 import psycopg2
 import sys
-from private import *
+from private import Private
 
 class Database(Private):
     
