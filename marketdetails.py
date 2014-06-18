@@ -1,7 +1,7 @@
 import os
 import urllib2
 import simplejson
-from database import *
+from database import Database, DatabaseOps
 from zipmarket import ZipMarket
 
 def sql_marketids():
@@ -64,75 +64,11 @@ class MarketDetails(object):
         self.googlelink = googlelink
         self.products = products
         self.schedule = schedule
-
-class DatabaseOps(object):
-    '''
-    We might be able to auto-detect LHS class by its __name__
-    '''
-    def __init__(self):
-        pass
-    
-    def import_classes(self, lhs_class, rhs_class, include_ids=True):       
-        if lhs_class.__class__.__name__ == rhs_class.__class__.__name__:
-            self.lhs = lhs_class
-            self.rhs = rhs_class
-            self.pair_values(include_ids)
-        else:
-            self.__del__()
-    
-    def __del__(self):
-        pass
-
-    def pair_values(self, include_ids):
-        self.value_pairs = {}
-        for p in self.lhs.__dict__:
-            self.value_pairs[self.lhs.__dict__[p]] = self.scrub_data(self.rhs.__dict__[p])
         
-        if not include_ids:
-            del self.value_pairs['id']
+#class MarketDetailsDefinitions(MarketDetails):
     
-    def scrub_data(self, data):
-        try:
-            data.isdigit()                  # string method which fails if int
-            data.replace("'","''")   # double up single-quotes to avoid sql error
-        except:
-            data =str(data)                # cast int as string
-        return data.encode('utf8', 'replace')
-    
-    def print_record2(self):
-        for k,v in self.value_pairs.items():
-            print '%s = %s' % (k, v)
-   
-    def print_record(self):
-        print self.value_pairs
-    
-    def make_delimited_string(self, delim, is_key=True):
-        if is_key:
-            return delim.join('%s' % (k) for k,v in self.value_pairs.items())
-        else:
-            return delim.join('%s' % (v) for k,v in self.value_pairs.items())
-    
-    def make_insert_into_values(self):
-
-        def scrub_int(value):
-            if not value.isdigit():
-                return "'"
-            else:
-                return ""
-        
-        comma_sep  = ', '.join("%s%s%s" % (scrub_int(v),v,scrub_int(v)) for k,v in self.value_pairs.items())
-        return comma_sep        
-
-    def build_insert(self):
-        # // TO DO:
-        # only thing left to clean up, bring in table name into class.        
-        sql = "INSERT INTO %s(%s) VALUES(%s)" % ('marketdetails', self.make_delimited_string(', '), self.make_insert_into_values())
-        return sql
-    
-    def build_csv(self, delim='|', is_header=False):
-        string = "%s\n" % (self.make_delimited_string(delim, is_header))
-        return string
-
+    #def __init__(self):
+        #sql
 
 class ApiEngine(object):
 
@@ -163,7 +99,6 @@ class ApiEngine(object):
         json = self.get_json()
         
         # print self.api_main_key
-        
         
         results = json[self.api_main_key]
         
@@ -231,15 +166,35 @@ class Engine(object):
 
 class KeyArgs():
     
-    def __init__(self, tablename, columns, write_to_db, record): # fix zip_start & zip_finish    
+    def __init__(self, tablename, write_to_db, record): # fix zip_start & zip_finish    
         self.tablename = tablename
-        self.columns = columns
+        #self.columns = columns
         self.write_to_db = write_to_db
         self.record = record
         
-        sql_column_names = MarketDetails('id', 'marketname', 'address', 'googlelink', 'products', 'schedule')
-        sql_column_declarations = MarketDetails('INT PRIMARY KEY', 'VARCHAR(255)', 'VARCHAR(1000)', 'VARCHAR(1000)', 'TEXT', 'VARCHAR(1000)')
-        api_column_names = MarketDetails('','','Address', 'GoogleLink', 'Products','Schedule')        
+        sql_column_names = MarketDetails('id'
+                                         ,'marketname'
+                                         ,'address'
+                                         ,'googlelink'
+                                         ,'products'
+                                         ,'schedule'
+                                         )
+        
+        sql_column_declarations = MarketDetails('INT PRIMARY KEY'
+                                                ,'VARCHAR(255)'
+                                                ,'VARCHAR(1000)'
+                                                ,'VARCHAR(1000)'
+                                                ,'TEXT'
+                                                ,'VARCHAR(1000)'
+                                                )
+        
+        api_column_names = MarketDetails(''
+                                         ,''
+                                         ,'Address'
+                                         ,'GoogleLink'
+                                         ,'Products'
+                                         ,'Schedule'
+                                         )        
         
         if write_to_db:
             self.db = Database()
@@ -250,7 +205,9 @@ class KeyArgs():
             dbops.import_classes(sql_column_names, sql_column_declarations)
             self.new_file.write(dbops.build_csv('|', True))
 
+    
 def test():
+    
     a = ApiEngine(19104,"http://search.ams.usda.gov/farmersmarkets/v1/data.svc/mktDetail?id=",
                   'marketdetails',
                   ['Address', 'GoogleLink', 'Products','Schedule'],
@@ -259,7 +216,7 @@ def test():
 
     recs = test_db()
     
-    write_to_db = True # False
+    write_to_db = False
     
     columns = [
         {'id': 'INT PRIMARY KEY'},
@@ -270,7 +227,7 @@ def test():
         {'schedule': 'VARCHAR(1000)'}
     ]            
     
-    k = KeyArgs('marketdetails', columns, write_to_db, '')
+    k = KeyArgs('marketdetails', write_to_db, '')
 
     if k.db != None:
         # column_declare = ', '.join('%s %s' % (k,v) for k,v in columns.items())
@@ -298,8 +255,61 @@ def test():
     
     finally:
         if write_to_db:
+            k.db.rollback()
             k.db.close()
         else:
             k.new_file.close()
     
-test()
+def test2():
+    
+    col_names = [('id', 'INT PRIMARY KEY', '')
+                 ,('marketname', 'VARCHAR(255)', '')
+                 ,('address', 'VARCHAR(1000)', 'Address')
+                 ,('googlelink', 'VARCHAR(1000)', 'GoogleLink')
+                 ,('products', 'TEXT', 'Products')
+                 ,('schedule', 'VARCHAR(1000)', 'Schedule')
+                 ]
+    
+    sql_column_names = MarketDetails('id'
+                                     ,'marketname'
+                                     ,'address'
+                                     ,'googlelink'
+                                     ,'products'
+                                     ,'schedule'
+                                     )
+    
+    sql_column_declarations = MarketDetails('INT PRIMARY KEY'
+                                            ,'VARCHAR(255)'
+                                            ,'VARCHAR(1000)'
+                                            ,'VARCHAR(1000)'
+                                            ,'TEXT'
+                                            ,'VARCHAR(1000)'
+                                            )
+    
+    api_column_names = MarketDetails(''
+                                     ,''
+                                     ,'Address'
+                                     ,'GoogleLink'
+                                     ,'Products'
+                                     ,'Schedule'
+                                     ) 
+
+    
+
+    
+if __name__ == '__main__':
+    test()
+    
+    
+'''
+if copying out to a csv:
+
+in PSQL window
+
+marketdetails:
+\COPY marketdetails(schedule, googlelink, marketname, products, address, id) FROM C:\path\to\farmersmarkets\marketdetails.csv WITH CSV HEADER DELIMITER '|';
+
+zipmarkets:
+\COPY zipmarkets(zipcode, market_id, marketname) FROM C:\path\to\farmersmarkets\zipmarkets.csv WITH CSV HEADER DELIMITER '|';
+
+'''
