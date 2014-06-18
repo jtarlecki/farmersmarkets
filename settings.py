@@ -22,3 +22,16 @@ API_KEYS = ['Address', 'GoogleLink', 'Products','Schedule']
 API_ERROR = ['Address', "Error, market not found."]
 
 WRITE_TO_DB = False
+
+# if the given list (URL_KEYs) comes from a sql table,
+# then define the query in here.
+def SQL_GIVEN_LIST():
+    """
+    SELECT market_id
+            ,LTRIM(RTRIM(substr(marketname, strpos(marketname, ' ')+1)))
+    FROM zipmarkets
+    GROUP BY market_id
+            ,LTRIM(RTRIM(substr(marketname, strpos(marketname, ' ')+1)))
+    ORDER BY market_id
+    """
+    pass

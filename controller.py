@@ -4,17 +4,6 @@ from zipmarket import ZipMarket             #eventually push into models.py
 from models import MarketDetails
 import settings as s
 
-def sql_marketids():
-    """
-    SELECT market_id
-            ,LTRIM(RTRIM(substr(marketname, strpos(marketname, ' ')+1)))
-    FROM zipmarkets
-    GROUP BY market_id
-            ,LTRIM(RTRIM(substr(marketname, strpos(marketname, ' ')+1)))
-    ORDER BY market_id
-    """
-    pass
-
 def print_records(records):
     # records is a tuple
     for record in records:
@@ -29,31 +18,13 @@ def print_fields(records):
 
 def test_db():
     
-    db = Database()
-    records = db.fetch(sql_marketids.__doc__)    
-    db.close()
-    return records
-
-### ORPHANED ###
-class ClassParser(object):
-
-    def __init__(self, results, givens, json_columns):
-        
-        given.columns = []
-        
-        for column in json_columns:
-            try:
-                self.dict[column] = results[column]
-            except:
-                not_in_json.append(column)
-        
-        for item in not_in_json:
-            self.dict[item] = givens[item]
-        
-        return self.dict    
-    
-    def return_dict(self):
-        return self.dict
+    if s.SQL_GIVEN_LIST().__doc__ != '':
+        db = Database()
+        records = db.fetch(sql_marketids.__doc__)    
+        db.close()
+        return records
+    else:
+        return None
 
 class ApiEngine(object):
 
@@ -258,3 +229,23 @@ zipmarkets:
 \COPY zipmarkets(zipcode, market_id, marketname) FROM C:\path\to\farmersmarkets\zipmarkets.csv WITH CSV HEADER DELIMITER '|';
 
 '''
+### ORPHANED ###
+class ClassParser(object):
+
+    def __init__(self, results, givens, json_columns):
+        
+        given.columns = []
+        
+        for column in json_columns:
+            try:
+                self.dict[column] = results[column]
+            except:
+                not_in_json.append(column)
+        
+        for item in not_in_json:
+            self.dict[item] = givens[item]
+        
+        return self.dict    
+    
+    def return_dict(self):
+        return self.dict

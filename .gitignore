@@ -1,5 +1,6 @@
 # Private
 private.py
+tests.py
 
 # ignore some folders.
 data/
