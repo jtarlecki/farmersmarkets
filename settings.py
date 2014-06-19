@@ -25,6 +25,7 @@ WRITE_TO_DB = False
 
 # if the given list (URL_KEYs) comes from a sql table,
 # then define the query in here.
+
 def SQL_GIVEN_LIST():
     """
     SELECT market_id

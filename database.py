@@ -31,11 +31,14 @@ class Database(Private):
         return self.cur.fetchall() # returns a tuple of tuples
 
 class DatabaseOps(object):
-    '''
-    We might be able to auto-detect LHS class by its __name__
-    '''
+
     def __init__(self):
         pass
+    '''
+    Typically, the lhs_class is the database table names
+    and the rhs_class is the data
+    This class helps to assemle the data
+    '''
     
     def import_classes(self, lhs_class, rhs_class, include_ids=True):       
         if lhs_class.__class__.__name__ == rhs_class.__class__.__name__:

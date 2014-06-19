@@ -14,5 +14,5 @@ class ZipMarket(object):
         self.identity = identity
         self.zipcode = zipcode
         self.market_id = market_id
-        self.marketname = marketname.replace("'","''") # double up single-quotes to avoid sql error
+        self.marketname = marketname
         self.tablename = tablename

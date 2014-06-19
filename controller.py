@@ -4,27 +4,41 @@ from zipmarket import ZipMarket             #eventually push into models.py
 from models import MarketDetails
 import settings as s
 
-def print_records(records):
-    # records is a tuple
-    for record in records:
-        print record
+class GivenRecords(object):
+    def __init__(self, KeyArgs, sql):
 
-def print_fields(records):
+        if sql != None:
+            if KeyArgs.db != None:
+                # pool the connection
+                records = KeyArgs.db.fetch(sql)
+            else:
+                db = Database()
+                records = db.fetch(sql)    
+                db.close()
+            self.records = records
+            self.recordnum = 0
+            self.recordcount = len(self.records)
+        else:
+            self.records = None
     
-    for record in records:
-        # print record[0], record[1]
-        for r in record:
-            print r    
+    ### these are all orphaned ###    
+    def get_next_record(self):
+        self.recordnum+=1
+        return self.records[self.recordnum]
+        
+    def print_records(self):
+        # records is a tuple
+        for record in self.records:
+            print record
+    
+    def print_fields(self):
+        
+        for record in self.records:
+            # print record[0], record[1]
+            for r in record:
+                print r    
+    
 
-def test_db():
-    
-    if s.SQL_GIVEN_LIST().__doc__ != '':
-        db = Database()
-        records = db.fetch(sql_marketids.__doc__)    
-        db.close()
-        return records
-    else:
-        return None
 
 class ApiEngine(object):
 
@@ -88,7 +102,7 @@ class ApiEngine(object):
             sql_cols = MarketDetails(*KeyArgs.engine.sql_cols_list)
             
             sql = DatabaseOps()
-            sql.import_classes(sql_cols, md)
+            sql.import_classes(sql_cols, marketdetail)
             
             if KeyArgs.db != None:
                 KeyArgs.db.query(sql.build_insert())
@@ -103,8 +117,9 @@ class ApiEngine(object):
         
 class Engine(object):
     '''
-    this controls the instance of classes
+    this controls the instances of classes
     '''
+    
     def init_cls(self, params):
         if self.cls =='zipmarket': 
             c = ZipMarket(*params),
@@ -163,58 +178,7 @@ class KeyArgs():
             self.new_file.write(dbops.build_csv('|', True))
         
    
-def test():
-    '''
-    // tablename is now created first in Engine() class
-    // API_KEYS can probably be derived by first instantiation of Engine() class
-    // TODO: write class to handle the flow of program
-    // 
-    '''
-    e = Engine(s.COLUMNS, s.API_CLASS_NAME)
-    a = ApiEngine(0
-                  ,s.API_URL
-                  ,s.API_MAIN_KEY
-                  ,s.API_KEYS
-                  ,s.API_ERROR
-                  )    
-    k = KeyArgs(e, s.WRITE_TO_DB, '')
-    
-    print 'k.engine.sql_cols_list', k.engine.sql_cols_list
-     
-    recs = test_db()  ### NEEDS WORK ###
 
-    if k.db != None:         
-        k.db.create_table(e.create_table())
-    
-    try:
-        print len(recs)
-        i = 0
-        for rec in recs:
-            i+=1
-            k.record = rec
-            a.update_url(rec[0]) # url_var
-            a.parse_json(k)
-    
-    except:
-        if s.WRITE_TO_DB:
-            k.db.rollback()
-        print 'error at: i = ', i,'; count = ', a.count, rec[0], rec[1] 
-    
-    finally:
-        if s.WRITE_TO_DB:
-            k.db.rollback()  ### NEEDS WORK ###
-            k.db.close()
-        else:
-            k.new_file.close()
-    
-def test2():
-        
-    e = Engine(s.COLUMNS, s.API_CLASS_NAME)
-    
-    print e.create_table()
-    
-if __name__ == '__main__':
-    test()
     
     
 '''
