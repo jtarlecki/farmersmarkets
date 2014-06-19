@@ -1,8 +1,8 @@
 import os, urllib2, simplejson
 from database import Database, DatabaseOps
-from zipmarket import ZipMarket             #eventually push into models.py
+#from zipmarkets.zipmarket import ZipMarket             #eventually push into models.py
 from models import MarketDetails
-import settings
+import marketdetails.settings as settings
 
 class Settings():
     
