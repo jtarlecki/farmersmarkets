@@ -6,15 +6,10 @@ class Scraper():
         '''
         // TODO: API_KEYS can probably be derived by first instantiation of Engine() class
         '''
-        s = Settings()
-        a = ApiEngine(0
-                      ,s.API_URL
-                      ,s.API_MAIN_KEY
-                      ,s.API_KEYS
-                      ,s.API_ERROR
-                      )    
-        k = KeyArgs(Engine(s.COLUMNS, s.API_CLASS_NAME), s.WRITE_TO_DB, '')        
-        
+        s = Settings(module)
+        a = ApiEngine(s)    # //just pass in settings
+        k = KeyArgs(s)        
+        # //just pass in settings.
         self.settings = s
         self.api = a
         self.keyargs = k
@@ -49,5 +44,7 @@ class Scraper():
 
 
 if __name__ == '__main__':
+    global module
+    module = 'marketdetails'
     scraper = Scraper()
     scraper.run()

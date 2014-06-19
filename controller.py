@@ -1,12 +1,24 @@
 import os, urllib2, simplejson
 from database import Database, DatabaseOps
 #from zipmarkets.zipmarket import ZipMarket             #eventually push into models.py
-from models import MarketDetails
-import marketdetails.settings as settings
+from models import MarketDetails, ZipMarket
+#import marketdetails.settings as settings
+
+'''
+### GENERAL TODO OTES ####
+
+All instantiations of DatabaseOps() are followed by DatabaseOps().import_classes() method; perhaps consolodate call
+Think about changing the name of DatabaseOps().  It assemlbles stings to be written to a CSV.
+'''
 
 class Settings():
     
-    def __init__(self):
+    def __init__(self, module):
+        
+        # first, dynamically import correct settings module
+        settings = __import__("%s.settings" % (module), fromlist=["%s" % (module)])
+        print "successfully imported %s" % ("%s.settings" % (module))
+        
         self.COLUMNS = settings.COLUMNS
         self.API_CLASS_NAME = settings.API_CLASS_NAME
         self.API_URL = settings.API_URL
@@ -33,7 +45,7 @@ class GivenRecords(object):
         else:
             self.records = None
     
-    ### these are all orphaned ###    
+    ### these are all orphaned, but here if you need them to debug ###    
     def get_next_record(self):
         self.recordnum+=1
         return self.records[self.recordnum]
@@ -52,19 +64,21 @@ class GivenRecords(object):
 
 class KeyArgs():
     
-    def __init__(self, engine, write_to_db, record): # fix zip_start & zip_finish    
-        self.engine = engine
-        self.write_to_db = write_to_db
-        self.record = record      
+    def __init__(self, settings): # fix zip_start & zip_finish    
+        # instantiates Engine() class
+        # and DatabaseOps() class, if writing to CSV (name convention seems counter intuitive)
+        self.settings = settings
+        self.engine = Engine(settings)
+        self.write_to_db = settings.WRITE_TO_DB
         
-        if write_to_db:
+        if settings.WRITE_TO_DB:
             self.db = Database()
         else:
             self.db = None
-            self.new_file = open('%s.csv' % (engine.tablename), 'w')
+            self.new_file = open('%s.csv' % (self.engine.tablename), 'w')
             
             dbops = DatabaseOps()
-            dbops.import_classes(engine.sql_cols, engine.sql_declare)
+            dbops.import_classes(self.engine.sql_cols, self.engine.sql_declare)
             self.new_file.write(dbops.build_csv('|', True))
 
 class Engine(object):
@@ -73,7 +87,6 @@ class Engine(object):
     perhaps the init_cls could be better control by packaging up
     modules into folders, and have the folder be recognized
     '''
-    
     def init_cls(self, params):
         if self.cls =='zipmarket': 
             c = ZipMarket(*params),
@@ -81,9 +94,9 @@ class Engine(object):
             c = MarketDetails(*params)
         return c
 
-    def __init__(self, columns, cls):
-        self.cls = cls
-        self.columns = columns
+    def __init__(self, settings):
+        self.cls = settings.API_CLASS_NAME
+        self.columns = settings.COLUMNS
         self.unpack_columns()
     
     def unpack_columns(self):
@@ -119,18 +132,22 @@ class ApiEngine(object):
     doing some double duty here
     '''
     
-    def __init__(self, url_var, url_pre, api_main_key, api_keys, api_err):
-        self.url_pre = url_pre
-        self.update_url(url_var)
-        self.api_main_key = api_main_key
-        self.api_keys = api_keys
-        self.api_err = api_err
+    def __init__(self, settings):
+        self.settings = settings
+        self.url_var = ''
+        #self.url_pre = url_pre
+        ##self.update_url(url_var)
+        #self.api_main_key = api_main_key
+        #self.api_keys = api_keys
+        #self.api_err = api_err
         self.count = 0
     
     def update_url(self, var):
+        #self.url_var = str(var)
+        #self.url = '%s%s' % (self.url_pre, self.url_var)
         self.url_var = str(var)
-        self.url = '%s%s' % (self.url_pre, self.url_var)
-    
+        self.url = '%s%s' % (self.settings.API_URL, self.url_var)
+        
     def counter(self):
         self.count += 1
     
@@ -144,7 +161,7 @@ class ApiEngine(object):
     def parse_json(self, KeyArgs): 
         url = self.url
         json = self.get_json()   
-        results = json[self.api_main_key]
+        results = json[self.settings.API_MAIN_KEY]
 
         def get_result(results):
             if type(results) == type({}):
@@ -154,18 +171,18 @@ class ApiEngine(object):
                 for result in results:
                     process_result(result)
 
-        def get_result_list(GivenRec, API_KEYS, result):
+        def get_result_list(GivenRec, result):
             args = list(GivenRec) #force the tuple to be a list           
             
-            for k in API_KEYS:
+            for k in self.settings.API_KEYS:
                 args.append(result[k])
             
             return args
         
         def process_result(result):
             
-            s = Settings() #mostly a static variable class
-            args = get_result_list(KeyArgs.record, s.API_KEYS, result)
+            #s = Settings() #mostly a static variable class
+            args = get_result_list(KeyArgs.record, result)
 
             data = KeyArgs.engine.init_cls(args)
             sql_cols = KeyArgs.engine.init_cls(KeyArgs.engine.sql_cols_list)
