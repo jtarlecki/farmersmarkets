@@ -1,7 +1,7 @@
 import os, urllib2, simplejson
 from database import Database, DatabaseOps
 #from zipmarkets.zipmarket import ZipMarket             #eventually push into models.py
-from models import MarketDetails, ZipMarket
+from models import MarketDetails, ZipMarkets
 #import marketdetails.settings as settings
 
 '''
@@ -88,8 +88,8 @@ class Engine(object):
     modules into folders, and have the folder be recognized
     '''
     def init_cls(self, params):
-        if self.cls =='zipmarket': 
-            c = ZipMarket(*params),
+        if self.cls =='zipmarkets': 
+            c = ZipMarkets(*params)
         if self.cls =='marketdetails': 
             c = MarketDetails(*params)
         return c
@@ -135,16 +135,9 @@ class ApiEngine(object):
     def __init__(self, settings):
         self.settings = settings
         self.url_var = ''
-        #self.url_pre = url_pre
-        ##self.update_url(url_var)
-        #self.api_main_key = api_main_key
-        #self.api_keys = api_keys
-        #self.api_err = api_err
         self.count = 0
     
     def update_url(self, var):
-        #self.url_var = str(var)
-        #self.url = '%s%s' % (self.url_pre, self.url_var)
         self.url_var = str(var)
         self.url = '%s%s' % (self.settings.API_URL, self.url_var)
         

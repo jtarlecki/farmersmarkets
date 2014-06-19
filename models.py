@@ -8,11 +8,10 @@ class MarketDetails(object):
         self.products = products
         self.schedule = schedule
 
-class ZipMarket(object):
+class ZipMarkets(object):
     
-    def __init__(self, identity, zipcode, market_id, marketname, tablename):
+    def __init__(self, identity, zipcode, market_id, marketname):
         self.identity = identity
         self.zipcode = zipcode
         self.market_id = market_id
         self.marketname = marketname
-        self.tablename = tablename

@@ -2,14 +2,11 @@ from controller import *
 
 class Scraper():
     
-    def __init__(self):
-        '''
-        // TODO: API_KEYS can probably be derived by first instantiation of Engine() class
-        '''
+    def __init__(self, module):
         s = Settings(module)
-        a = ApiEngine(s)    # //just pass in settings
+        a = ApiEngine(s)    
         k = KeyArgs(s)        
-        # //just pass in settings.
+
         self.settings = s
         self.api = a
         self.keyargs = k
@@ -19,7 +16,7 @@ class Scraper():
         recs = given.records
         
         if self.keyargs.db != None:         
-            self.keyargs.db.create_table(self.keyargs.engine.create_table())
+            self.keyargs.db.create_table(self.keyargs.engine.create_table()) # looks like it should be moved out of Engine()
     
         try:
             print len(recs)
@@ -36,7 +33,7 @@ class Scraper():
             print 'error at: i = ', i,'; count = ', self.api.count, rec[0], rec[1] 
         
         finally:
-            if self.keyargs.WRITE_TO_DB:
+            if self.settings.WRITE_TO_DB:
                 self.keyargs.db.rollback()  ### NEEDS WORK ###
                 self.keyargs.db.close()
             else:
@@ -44,7 +41,5 @@ class Scraper():
 
 
 if __name__ == '__main__':
-    global module
-    module = 'marketdetails'
-    scraper = Scraper()
+    scraper = Scraper('zipmarkets')
     scraper.run()
