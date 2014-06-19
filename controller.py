@@ -4,6 +4,18 @@ from zipmarket import ZipMarket             #eventually push into models.py
 from models import MarketDetails
 import settings
 
+class Settings():
+    
+    def __init__(self):
+        self.COLUMNS = settings.COLUMNS
+        self.API_CLASS_NAME = settings.API_CLASS_NAME
+        self.API_URL = settings.API_URL
+        self.API_MAIN_KEY = settings.API_MAIN_KEY
+        self.API_KEYS = settings.API_KEYS
+        self.API_ERROR = settings.API_ERROR
+        self.WRITE_TO_DB = settings.WRITE_TO_DB
+        self.SQL_GIVEN_LIST = settings.SQL_GIVEN_LIST.__doc__   
+
 class GivenRecords(object):
     def __init__(self, KeyArgs, sql):
 
@@ -36,9 +48,70 @@ class GivenRecords(object):
         for record in self.records:
             # print record[0], record[1]
             for r in record:
-                print r    
-    
+                print r
 
+class KeyArgs():
+    
+    def __init__(self, engine, write_to_db, record): # fix zip_start & zip_finish    
+        self.engine = engine
+        self.write_to_db = write_to_db
+        self.record = record      
+        
+        if write_to_db:
+            self.db = Database()
+        else:
+            self.db = None
+            self.new_file = open('%s.csv' % (engine.tablename), 'w')
+            
+            dbops = DatabaseOps()
+            dbops.import_classes(engine.sql_cols, engine.sql_declare)
+            self.new_file.write(dbops.build_csv('|', True))
+
+class Engine(object):
+    '''
+    this controls the instances of classes
+    perhaps the init_cls could be better control by packaging up
+    modules into folders, and have the folder be recognized
+    '''
+    
+    def init_cls(self, params):
+        if self.cls =='zipmarket': 
+            c = ZipMarket(*params),
+        if self.cls =='marketdetails': 
+            c = MarketDetails(*params)
+        return c
+
+    def __init__(self, columns, cls):
+        self.cls = cls
+        self.columns = columns
+        self.unpack_columns()
+    
+    def unpack_columns(self):
+        sql_cols = []
+        sql_defs = []
+        api_cols = []
+        sql_declare = []
+        
+        for column in self.columns:
+            sql_cols.append(column[0])          
+            sql_declare.append(column[1])
+            api_cols.append(column[2])
+            # combine the column names with the declarations
+            # // this could be improved
+            sql_defs.append('%s %s' % (column[0],column[1])) 
+        
+        self.sql_cols_list = sql_cols    
+        self.sql_cols = self.init_cls(sql_cols)
+        self.sql_declare = self.init_cls(sql_declare)
+        self.api_cols = self.init_cls(api_cols)
+        
+        self.sql_defs = sql_defs
+        self.tablename = self.sql_cols.__class__.__name__.lower()
+    
+    # //TODO: move this do DatabaseOps() class, if possible.    
+    def create_table(self):
+        string = ', '.join('%s' % (k) for k in self.sql_defs)
+        return 'CREATE TABLE %s(%s)' % (self.tablename, string)
 
 class ApiEngine(object):
 
@@ -83,10 +156,7 @@ class ApiEngine(object):
                     process_result(result)
 
         def get_result_list(GivenRec, API_KEYS, result):
-            args = list(GivenRec) #force the tuple
-            
-            #for field in GivenRec:
-                #args.append(field)
+            args = list(GivenRec) #force the tuple            
             
             for k in API_KEYS:
                 args.append(result[k])
@@ -100,11 +170,11 @@ class ApiEngine(object):
             Explicit call to MarketDetails() here is weak
             ### NEEDS WORK ###
             """
-            s = Settings()
+            s = Settings() #mostly a static variable class
             args = get_result_list(KeyArgs.record, s.API_KEYS, result)
 
-            data = MarketDetails(*args)
-            sql_cols = MarketDetails(*KeyArgs.engine.sql_cols_list)
+            data = KeyArgs.engine.init_cls(args)
+            sql_cols = KeyArgs.engine.init_cls(KeyArgs.engine.sql_cols_list)
             
             sql = DatabaseOps()
             sql.import_classes(sql_cols, data)
@@ -118,85 +188,6 @@ class ApiEngine(object):
         
         get_result(results)
         self.counter()
-
-        
-class Engine(object):
-    '''
-    this controls the instances of classes
-    '''
-    
-    def init_cls(self, params):
-        if self.cls =='zipmarket': 
-            c = ZipMarket(*params),
-        if self.cls =='marketdetails': 
-            c = MarketDetails(*params)
-        return c
-
-    def __init__(self, columns, cls):
-        self.cls = cls
-        self.columns = columns
-        self.unpack_columns()
-    
-    def unpack_columns(self):
-        sql_cols = []
-        sql_defs = []
-        api_cols = []
-        sql_declare = []
-        
-        for column in self.columns:
-            sql_cols.append(column[0])          
-            sql_declare.append(column[1])
-            api_cols.append(column[2])
-            # combine the column names with the declarations
-            # // this could be improved
-            sql_defs.append('%s %s' % (column[0],column[1])) 
-        
-        self.sql_cols_list = sql_cols    
-        self.sql_cols = self.init_cls(sql_cols)
-        self.sql_declare = self.init_cls(sql_declare)
-        self.api_cols = self.init_cls(api_cols)
-        
-        self.sql_defs = sql_defs
-        self.tablename = self.sql_cols.__class__.__name__.lower()
-    
-    # //TODO: move this do DatabaseOps() class, if possible.    
-    def create_table(self):
-        string = ', '.join('%s' % (k) for k in self.sql_defs)
-        return 'CREATE TABLE %s(%s)' % (self.tablename, string)
-        
-
-class KeyArgs():
-    
-    def __init__(self, engine, write_to_db, record): # fix zip_start & zip_finish    
-        self.engine = engine
-        self.write_to_db = write_to_db
-        self.record = record      
-        
-        if write_to_db:
-            self.db = Database()
-        else:
-            self.db = None
-            self.new_file = open('%s.csv' % (engine.tablename), 'w')
-            
-            dbops = DatabaseOps()
-            dbops.import_classes(engine.sql_cols, engine.sql_declare)
-            self.new_file.write(dbops.build_csv('|', True))
-       
-class Settings():
-    
-    def __init__(self):
-        self.COLUMNS = settings.COLUMNS
-        self.API_CLASS_NAME = settings.API_CLASS_NAME
-        self.API_URL = settings.API_URL
-        self.API_MAIN_KEY = settings.API_MAIN_KEY
-        self.API_KEYS = settings.API_KEYS
-        self.API_ERROR = settings.API_ERROR
-        self.WRITE_TO_DB = settings.WRITE_TO_DB
-        self.SQL_GIVEN_LIST = settings.SQL_GIVEN_LIST.__doc__
-        
-        
-        
-        
     
 '''
 if copying out to a csv:
