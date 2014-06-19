@@ -1,8 +1,16 @@
-import os
-import urllib2
-import simplejson
+import os, urllib2, simplejson
 from database import *
+'''
+THIS IS CURRENTLY UNUSED BY THE REST OF THE PROGRAM
+A MAJORITY OF THE CODE HAS BEEN PUSHED INTO OTHER MODULES
+// TODO: PACKAGE UP zipmarket MODULE SO THAT IT CAN BE ACCESSED
+AND USED BY THE SCRAPER.
 
+Need to fix:
+error handling 
+, GivenRecords() will be different [this loops through all zip, not a db query]
+, 
+'''
 class ZipMarket(object):
     
     def __init__(self, identity, zipcode, market_id, marketname, tablename):
@@ -70,7 +78,6 @@ def run(KeyArgs):
         Then, write each record to a databse table
         This is slow if database is remote!
         """
-        
         string = []
         
         for column in KeyArgs.columns:    

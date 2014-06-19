@@ -114,7 +114,11 @@ class Engine(object):
         return 'CREATE TABLE %s(%s)' % (self.tablename, string)
 
 class ApiEngine(object):
-
+    '''
+    // TODO: need to divorce ApiEngine() properties from Settings() properties 
+    doing some double duty here
+    '''
+    
     def __init__(self, url_var, url_pre, api_main_key, api_keys, api_err):
         self.url_pre = url_pre
         self.update_url(url_var)
@@ -137,16 +141,11 @@ class ApiEngine(object):
         json = simplejson.load(f) 
         return json
 
-    def parse_json(self, KeyArgs): #, json_columns):
+    def parse_json(self, KeyArgs): 
         url = self.url
-        json = self.get_json()
-        
-        # print self.api_main_key
-        
+        json = self.get_json()   
         results = json[self.api_main_key]
-        
-        # print results
-        
+
         def get_result(results):
             if type(results) == type({}):
                 # if dict begin creating objects
@@ -156,7 +155,7 @@ class ApiEngine(object):
                     process_result(result)
 
         def get_result_list(GivenRec, API_KEYS, result):
-            args = list(GivenRec) #force the tuple            
+            args = list(GivenRec) #force the tuple to be a list           
             
             for k in API_KEYS:
                 args.append(result[k])
@@ -165,11 +164,6 @@ class ApiEngine(object):
         
         def process_result(result):
             
-            # print self.api_err[0], self.api_err[1]
-            """
-            Explicit call to MarketDetails() here is weak
-            ### NEEDS WORK ###
-            """
             s = Settings() #mostly a static variable class
             args = get_result_list(KeyArgs.record, s.API_KEYS, result)
 
