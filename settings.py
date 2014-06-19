@@ -26,7 +26,7 @@ WRITE_TO_DB = False
 # if the given list (URL_KEYs) comes from a sql table,
 # then define the query in here.
 
-def SQL_GIVEN_LIST():
+def SQL_GIVEN_LIST(self):
     """
     SELECT market_id
             ,LTRIM(RTRIM(substr(marketname, strpos(marketname, ' ')+1)))
@@ -36,3 +36,4 @@ def SQL_GIVEN_LIST():
     ORDER BY market_id
     """
     pass
+

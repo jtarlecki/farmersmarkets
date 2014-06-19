@@ -2,7 +2,7 @@ import os, urllib2, simplejson
 from database import Database, DatabaseOps
 from zipmarket import ZipMarket             #eventually push into models.py
 from models import MarketDetails
-import settings as s
+import settings
 
 class GivenRecords(object):
     def __init__(self, KeyArgs, sql):
@@ -82,27 +82,32 @@ class ApiEngine(object):
                 for result in results:
                     process_result(result)
 
+        def get_result_list(GivenRec, API_KEYS, result):
+            args = list(GivenRec) #force the tuple
+            
+            #for field in GivenRec:
+                #args.append(field)
+            
+            for k in API_KEYS:
+                args.append(result[k])
+            
+            return args
+        
         def process_result(result):
-
+            
             # print self.api_err[0], self.api_err[1]
             """
             Explicit call to MarketDetails() here is weak
-            As is passing the parameters individually
             ### NEEDS WORK ###
             """
-            
-            marketdetail = MarketDetails(KeyArgs.record[0],
-                                         KeyArgs.record[1],
-                                         result['Address'],
-                                         result['GoogleLink'],
-                                         result['Products'],
-                                         result['Schedule']
-                                         )
-            
+            s = Settings()
+            args = get_result_list(KeyArgs.record, s.API_KEYS, result)
+
+            data = MarketDetails(*args)
             sql_cols = MarketDetails(*KeyArgs.engine.sql_cols_list)
             
             sql = DatabaseOps()
-            sql.import_classes(sql_cols, marketdetail)
+            sql.import_classes(sql_cols, data)
             
             if KeyArgs.db != None:
                 KeyArgs.db.query(sql.build_insert())
@@ -171,15 +176,27 @@ class KeyArgs():
             self.db = Database()
         else:
             self.db = None
+            self.new_file = open('%s.csv' % (engine.tablename), 'w')
+            
             dbops = DatabaseOps()
             dbops.import_classes(engine.sql_cols, engine.sql_declare)
-            self.tablename = dbops.tablename
-            self.new_file = open('%s.csv' % (dbops.tablename), 'w')
             self.new_file.write(dbops.build_csv('|', True))
-        
-   
-
+       
+class Settings():
     
+    def __init__(self):
+        self.COLUMNS = settings.COLUMNS
+        self.API_CLASS_NAME = settings.API_CLASS_NAME
+        self.API_URL = settings.API_URL
+        self.API_MAIN_KEY = settings.API_MAIN_KEY
+        self.API_KEYS = settings.API_KEYS
+        self.API_ERROR = settings.API_ERROR
+        self.WRITE_TO_DB = settings.WRITE_TO_DB
+        self.SQL_GIVEN_LIST = settings.SQL_GIVEN_LIST.__doc__
+        
+        
+        
+        
     
 '''
 if copying out to a csv:
