@@ -47,7 +47,7 @@ class GivenRecords(object):
             self.recordnum = 0
             self.recordcount = len(self.records)
         else:
-            self.records = range(1,100000)  #// TODO: this need to be included in settings.
+            self.records = range(19101,100000)  #// TODO: this need to be included in settings.
     
     ### these are all orphaned, but here if you need them to debug ###    
     def get_next_record(self):
@@ -167,13 +167,11 @@ class ApiEngine(object):
 
         def get_result_list(GivenRec, result):
             args = list(GivenRec) #force the tuple to be a list           
-            
-            # somewhere around here we need to check for api_error
-            
+
             for k in self.settings.API_KEYS:
                 val = result[k]
                 if k == self.settings.API_ERROR[0] and val == self.settings.API_ERROR[1]:
-                    print self.settings.API_ERROR
+                    print "args: %s; error_key: %s\n" %(args, self.settings.API_ERROR)
                     return None
                 else:
                     args.append(val)
@@ -203,9 +201,6 @@ class ApiEngine(object):
         url = self.url
         json = self.get_json()   
         results = json[self.settings.API_MAIN_KEY]
-
-
-            
         get_result(results)
         
     

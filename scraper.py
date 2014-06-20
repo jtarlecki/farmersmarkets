@@ -19,21 +19,20 @@ class Scraper():
             self.keyargs.db.create_table(self.keyargs.engine.create_table()) # looks like it should be moved out of Engine()
     
         try:
-            print len(recs)
+            print "About to begin %s API calls to \n%s%s" % (len(recs), self.settings.API_URL, "<INSERT PARAMETER>")
             i = 0
             for rec in recs:
                 i+=1
                 if type(rec) != type(()):
                     rec = (i,rec)           # force a tuple, and add an id
                 self.keyargs.record = rec
-                self.api.update_url(rec[0]) # url_var
+                self.api.update_url(rec[not self.settings.INCLUDE_IDS]) # url_var
                 self.api.parse_json(self.keyargs)
-                #self.api.parse_json()
         
         except:
             if self.settings.WRITE_TO_DB:
                 self.keyargs.db.rollback()
-            print 'error at: i = ', i,'; count = ', self.api.count, rec[0], rec[1]# ' | '.join('%s' % (k) for k in rec)
+            print 'Error at: Record = ', i,'; Count = ', self.api.count, rec[0], rec[1]# ' | '.join('%s' % (k) for k in rec)
         
         finally:
             if self.settings.WRITE_TO_DB:
