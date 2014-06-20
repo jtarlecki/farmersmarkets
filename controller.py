@@ -28,6 +28,7 @@ class Settings():
         self.WRITE_TO_DB = settings.WRITE_TO_DB
         self.SQL_GIVEN_LIST = settings.SQL_GIVEN_LIST.__doc__
         self.INCLUDE_IDS = settings.INCLUDE_IDS
+        self.URL_VARS = settings.URL_VARS
 
 class GivenRecords(object):
     
@@ -37,7 +38,7 @@ class GivenRecords(object):
         
         if sql != None:
             if KeyArgs.db != None:
-                # pool the connection
+                # pool the connection, if it exists
                 records = KeyArgs.db.fetch(sql)
             else:
                 db = Database()
@@ -47,8 +48,8 @@ class GivenRecords(object):
             self.recordnum = 0
             self.recordcount = len(self.records)
         else:
-            self.records = range(19101,100000)  #// TODO: this need to be included in settings.
-    
+            self.records = KeyArgs.settings.URL_VARS
+            
     ### these are all orphaned, but here if you need them to debug ###    
     def get_next_record(self):
         self.recordnum+=1
@@ -68,7 +69,7 @@ class GivenRecords(object):
 
 class KeyArgs():
     
-    def __init__(self, settings): # fix zip_start & zip_finish    
+    def __init__(self, settings):  
         # instantiates Engine() class
         # and DatabaseOps() class, if writing to CSV (name convention seems counter intuitive)
         self.settings = settings

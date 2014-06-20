@@ -25,16 +25,14 @@ WRITE_TO_DB = False
 # If the database will create and Id automatically (say, SERIAL datatype); set to "False"
 INCLUDE_IDS = False
 
-# if the given list (URL_KEYs) comes from a sql table,
-# then define the query in here.
+### One of the below items [(1) or (2)] MUST be populated ###
 
+# (1)
+# If url variables are a list that can be defined, put it here
+URL_VARS = range(0,100000)
+
+# (2)
+# Rather, if the given list (URL_VARS) comes from a sql table,
+# then define the query in here.
 def SQL_GIVEN_LIST(self):
     pass
-
-'''
-!!!!!!
-Still need to find a way to manage the query (zip=1 to 100000)
-and iterate
-and how to dynamically recognize what settings file we are using for which run
-!!!!!!!
-'''

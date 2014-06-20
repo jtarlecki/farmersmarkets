@@ -27,9 +27,15 @@ WRITE_TO_DB = False
 # If the database will create and Id automatically (say, SERIAL datatype); set to "False"
 INCLUDE_IDS = True
 
-# if the given list (URL_KEYs) comes from a sql table,
-# then define the query in here.
+### One of the below items [(1) or (2)] MUST be populated ###
 
+# (1)
+# If url variables are a list that can be defined, put it here
+URL_VARS = ''
+
+# (2)
+# Rather, if the given list (URL_VARS) comes from a sql table,
+# then define the query in here.
 def SQL_GIVEN_LIST(self):
     """
     SELECT market_id
