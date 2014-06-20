@@ -23,6 +23,10 @@ API_ERROR = ['Address', "Error, market not found."]
 
 WRITE_TO_DB = False
 
+# Set to "True" if Id numbers are desired for the output
+# If the database will create and Id automatically (say, SERIAL datatype); set to "False"
+INCLUDE_IDS = True
+
 # if the given list (URL_KEYs) comes from a sql table,
 # then define the query in here.
 

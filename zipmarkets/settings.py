@@ -17,9 +17,13 @@ API_MAIN_KEY = 'results'
 
 API_KEYS = ['id', 'marketname']
 
-API_ERROR = ['id', "Error"]
+API_ERROR = ['id', 'Error']
 
 WRITE_TO_DB = False
+
+# Set to "True" if Id numbers are desired for the output
+# If the database will create and Id automatically (say, SERIAL datatype); set to "False"
+INCLUDE_IDS = False
 
 # if the given list (URL_KEYs) comes from a sql table,
 # then define the query in here.

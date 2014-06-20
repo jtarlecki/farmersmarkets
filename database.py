@@ -62,18 +62,11 @@ class DatabaseOps(object):
     
     def scrub_data(self, data):
         try:
-            data.isdigit()                  # string method which fails if int
-            data.replace("'","''")          # double up single-quotes to avoid sql error
+            data.isdigit()                      # string method which fails if int
+            data.replace("'","''")              # double up single-quotes to avoid sql error
         except:
-            data =str(data)                 # cast int as string
+            data =str(data)                     # cast int as string
         return data.encode('utf8', 'replace')
-    
-    def print_record2(self):
-        for k,v in self.value_pairs.items():
-            print '%s = %s' % (k, v)
-   
-    def print_record(self):
-        print self.value_pairs
     
     def make_delimited_string(self, delim, is_key=True):
         if is_key:
@@ -92,9 +85,7 @@ class DatabaseOps(object):
         comma_sep  = ', '.join("%s%s%s" % (scrub_int(v),v,scrub_int(v)) for k,v in self.value_pairs.items())
         return comma_sep        
 
-    def build_insert(self):
-        # // TO DO:
-        # only thing left to clean up, bring in table name into class.        
+    def build_insert(self):        
         sql = "INSERT INTO %s(%s) VALUES(%s)" % (self.tablename, self.make_delimited_string(', '), self.make_insert_into_values())
         return sql
     
@@ -102,3 +93,10 @@ class DatabaseOps(object):
         string = "%s\n" % (self.make_delimited_string(delim, is_header))
         return string
     
+    ### not used, but remain here if needed for debugging ###
+    def print_record2(self):
+        for k,v in self.value_pairs.items():
+            print '%s = %s' % (k, v)
+   
+    def print_record(self):
+        print self.value_pairs    

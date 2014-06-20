@@ -26,11 +26,15 @@ class Settings():
         self.API_KEYS = settings.API_KEYS
         self.API_ERROR = settings.API_ERROR
         self.WRITE_TO_DB = settings.WRITE_TO_DB
-        self.SQL_GIVEN_LIST = settings.SQL_GIVEN_LIST.__doc__   
+        self.SQL_GIVEN_LIST = settings.SQL_GIVEN_LIST.__doc__
+        self.INCLUDE_IDS = settings.INCLUDE_IDS
 
 class GivenRecords(object):
-    def __init__(self, KeyArgs, sql):
-
+    
+    def __init__(self, KeyArgs):
+        
+        sql = KeyArgs.settings.SQL_GIVEN_LIST
+        
         if sql != None:
             if KeyArgs.db != None:
                 # pool the connection
@@ -43,7 +47,7 @@ class GivenRecords(object):
             self.recordnum = 0
             self.recordcount = len(self.records)
         else:
-            self.records = None
+            self.records = range(1,100000)  #// TODO: this need to be included in settings.
     
     ### these are all orphaned, but here if you need them to debug ###    
     def get_next_record(self):
@@ -152,10 +156,7 @@ class ApiEngine(object):
         return json
 
     def parse_json(self, KeyArgs): 
-        url = self.url
-        json = self.get_json()   
-        results = json[self.settings.API_MAIN_KEY]
-
+        
         def get_result(results):
             if type(results) == type({}):
                 # if dict begin creating objects
@@ -167,8 +168,15 @@ class ApiEngine(object):
         def get_result_list(GivenRec, result):
             args = list(GivenRec) #force the tuple to be a list           
             
+            # somewhere around here we need to check for api_error
+            
             for k in self.settings.API_KEYS:
-                args.append(result[k])
+                val = result[k]
+                if k == self.settings.API_ERROR[0] and val == self.settings.API_ERROR[1]:
+                    print self.settings.API_ERROR
+                    return None
+                else:
+                    args.append(val)
             
             return args
         
@@ -176,22 +184,30 @@ class ApiEngine(object):
             
             #s = Settings() #mostly a static variable class
             args = get_result_list(KeyArgs.record, result)
+            
+            if args != None:
+                data = KeyArgs.engine.init_cls(args)
+                sql_cols = KeyArgs.engine.init_cls(KeyArgs.engine.sql_cols_list)
+                
+                sql = DatabaseOps()
+                sql.import_classes(sql_cols, data, self.settings.INCLUDE_IDS)
+                
+                if KeyArgs.db != None:
+                    KeyArgs.db.query(sql.build_insert())
+                else:
+                    line = sql.build_csv()
+                    print line
+                    KeyArgs.new_file.write(line)
+                self.counter()
+                
+        url = self.url
+        json = self.get_json()   
+        results = json[self.settings.API_MAIN_KEY]
 
-            data = KeyArgs.engine.init_cls(args)
-            sql_cols = KeyArgs.engine.init_cls(KeyArgs.engine.sql_cols_list)
+
             
-            sql = DatabaseOps()
-            sql.import_classes(sql_cols, data)
-            
-            if KeyArgs.db != None:
-                KeyArgs.db.query(sql.build_insert())
-            else:
-                line = sql.build_csv()
-                print line
-                KeyArgs.new_file.write(line)
-        
         get_result(results)
-        self.counter()
+        
     
 '''
 if copying out to a csv:
